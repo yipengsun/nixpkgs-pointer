@@ -7,13 +7,21 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
+    {
+      name = toString self.lastModified;
+    } //
     flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system}; in
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in
       rec {
         packages = flake-utils.lib.flattenTree {
-          gitAndTools = pkgs.gitAndTools;
+          nixpkgs-pointer-version = pkgs.writeScriptBin "nixpkgs-pointer-version" ''
+            #!${pkgs.stdenv.shell}
+            echo "${self.name}"
+          '';
         };
-        defaultPackage = packages.gitAndTools;
+        defaultPackage = packages.nixpkgs-pointer-version;
       }
     );
 }
