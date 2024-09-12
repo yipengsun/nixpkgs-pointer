@@ -1,28 +1,31 @@
 {
-  description = "A pointer to a version of nixpkgs.";
-
   inputs = {
-    #nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-utils.url = "github:numtide/flake-utils";  # for backward compat
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    {
+  outputs = { self, flake-parts, ... } @ inputs:
+    let
       name = toString self.lastModified;
-    } //
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-      in
-      rec {
-        packages = flake-utils.lib.flattenTree {
+    in
+    flake-parts.lib.mkFlake { inherit inputs; } ({ ... }: {
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+
+      perSystem = { pkgs, ... }:
+        let
           nixpkgs-pointer-version = pkgs.writeScriptBin "nixpkgs-pointer-version" ''
             #!${pkgs.stdenv.shell}
-            echo "${self.name}"
+            echo "${name}"
           '';
+        in
+        {
+          packages.nixpkgs-pointer-version = nixpkgs-pointer-version;
+
+          devShells.default = pkgs.mkShell.override { stdenv = pkgs.stdenvNoCC; } {
+            buildInputs = [ nixpkgs-pointer-version ];
+          };
         };
-        defaultPackage = packages.nixpkgs-pointer-version;
-      }
-    );
+    });
 }

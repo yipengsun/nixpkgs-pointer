@@ -1,6 +1,7 @@
 # nixpkgs-pointer
-A pointer to a version of nixpkgs so all my projects can reuse the same nixpkgs
-version. This may also contain overlays that are useful for all my projects.
+
+A pointer to fixed versions of `nixpkgs` and other utils.
+Doing so allows me to reuse the same `nixpkgs` among my projects.
 
 **Note**: `nix` with flake support is required.
 
@@ -12,6 +13,9 @@ Define a flake's input like the following:
   inputs = {
     nixpkgs-pointer.url = "github:yipengsun/nixpkgs-pointer";
     nixpkgs.follows = "nixpkgs-pointer/nixpkgs";
+
+    flake-parts.follows = "nixpkgs-pointer/flake-parts";
+    # or
     flake-utils.follows = "nixpkgs-pointer/flake-utils";
   };
 ```
