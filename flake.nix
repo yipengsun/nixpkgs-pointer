@@ -19,7 +19,7 @@
         let
           nixpkgs-pointer-version = pkgs.writeScriptBin "nixpkgs-pointer-version" ''
             #!${pkgs.stdenv.shell}
-            echo "${name}"
+            date -d @"${name}"
           '';
         in
         {
